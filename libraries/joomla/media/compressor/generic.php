@@ -16,7 +16,7 @@ defined('JPATH_PLATFORM') or die;
  * @subpackage  Media
  * @since       12.1 
  */
-abstract class JMediaCompressorCss implements JMediaCompressor
+abstract class JMediaCompressorGeneric implements JMediaCompressor
 {
     /**
      * @var    String  To hold uncompressed Code.
@@ -165,6 +165,18 @@ abstract class JMediaCompressorCss implements JMediaCompressor
                 self::$instances[$newSignature] = $this;
             }
         }
+    }
+
+    /**
+     * Method to get compressor options
+     *
+     * @return  array  Options for the compressor
+     *
+     * @since   12.1
+     */
+    public function getOptions(){
+
+        return $this->options;
     }
 
     /**
