@@ -79,15 +79,6 @@ interface JMediaCompressor
 	public function setOptions($options);
 
 	/**
-	 * Method to get compressed ratio.
-	 *
-	 * @return  double  Compressed ratio.
-	 *
-	 * @since  12.1
-	 */
-	public function getRatio();
-
-	/**
 	 * Method to get compressor options
 	 * 
 	 * @return  array  Options for the compressor
@@ -96,7 +87,16 @@ interface JMediaCompressor
 	 */
 	public function getOptions();
 
-	/**
+    /**
+     * Method to get compressed ratio.
+     *
+     * @return  double  Compressed ratio.
+     *
+     * @since  12.1
+     */
+    public function getRatio();
+
+    /**
 	 * Method to clear compressor data
 	 * 
 	 * @return  void

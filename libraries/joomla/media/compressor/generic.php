@@ -25,22 +25,10 @@ abstract class JMediaCompressorGeneric implements JMediaCompressor
     public $uncompressed = null;
 
     /**
-     * @var    int  size of uncompressed Code.
-     * @since  12.1
-     */
-    public $uncompressedSize = null;
-
-    /**
      * @var    String  To hold compressed Code.
      * @since  12.1
      */
     protected  $compressed = null;
-
-    /**
-     * @var    int  size of compressed Code.
-     * @since  12.1
-     */
-    public $compressedSize = null;
 
     /**
      * @var    Array  Compression options for CSS Minifier.
@@ -49,10 +37,17 @@ abstract class JMediaCompressorGeneric implements JMediaCompressor
     protected  $options = array();
 
     /**
-     * @var    array  JMediaCompressor instances container.
-     * @since  11.1
+     * constructor
+     *
+     * @param   Array  $options  Compression options for Minifier.
+     *
+     * @since  12.1
      */
-    protected static $instances = array();
+    public function __construct($options = array())
+    {
+        // Merge user defined options with default options
+        $this->options = array_merge($this->options, $options);
+    }
 
 	/**
 	 * Method to compress the code.
@@ -77,7 +72,6 @@ abstract class JMediaCompressorGeneric implements JMediaCompressor
     public function setUncompressed($uncompressed)
     {
         $this->uncompressed = $uncompressed;
-        $this->uncompressedSize	= strlen($this->uncompressed);
     }
 
     /**
@@ -104,7 +98,6 @@ abstract class JMediaCompressorGeneric implements JMediaCompressor
     public function setCompressed($compressed)
     {
         $this->compressed = $compressed;
-        $this->compressedSize = strlen($this->compressed);
     }
 
     /**
@@ -159,7 +152,7 @@ abstract class JMediaCompressorGeneric implements JMediaCompressor
      */
     public function getRatio()
     {
-        return round(($this->compressedSize / $this->uncompressedSize * 100), 2);
+        return round((strlen($this->compressed) / strlen($this->uncompressed) * 100), 2);
     }
 
     /**
@@ -172,9 +165,7 @@ abstract class JMediaCompressorGeneric implements JMediaCompressor
     public function clear()
     {
         $this->compressed = null;
-        $this->compressedSize = null;
         $this->uncompressed = null;
-        $this->uncompressedSize = null;
     }
 
 }

@@ -137,74 +137,6 @@ abstract class JMediaCollection
 	}
 
 	/**
-	 * Static method to get a set of files combined
-	 *
-	 * @param   array   $files        Set of source files
-	 * @param   array   $options      Options for collection
-	 * @param   string  $destination  Destination file
-	 *
-	 * @return  boolean  True on success
-	 *
-	 * @throws  RuntimeException
-	 *
-	 * @since 12.1
-	 */
-	public static function combineFiles($files, $options = array(), $destination = null)
-	{
-		// Detect file type
-		$type = pathinfo($files[0], PATHINFO_EXTENSION);
-
-		if (!self::isSupported($files[0]))
-		{
-			throw new RuntimeException(sprintf("Error Loading Collection class for %s file type", $type));
-		}
-
-		// Checks for the destination
-		if ($destination === null)
-		{
-			$type = $extension = pathinfo($files[0], PATHINFO_EXTENSION);
-
-			// Check for the file prefix in options, assign default prefix if not found
-			if (array_key_exists('PREFIX', $options) && !empty($options['PREFIX']))
-			{
-				$destination = str_ireplace('.' . $type, '.' . $options['PREFIX'] . '.' . $type, $files[0]);
-			}
-			else
-			{
-				$destination = str_ireplace('.' . $type, '.combined.' . $type, $files[0]);
-			}
-		}
-
-		$options['type'] = (!empty($options['type'])) ? $options['type'] : $type;
-
-		$combiner = self::getInstance($options);
-
-		$combiner->addFiles($files);
-
-		$combiner->combine();
-
-		if (!empty($combiner->combined))
-		{
-			$force = array_key_exists('OVERWRITE', $options) && !empty($options['OVERWRITE']) ? $options['OVERWRITE'] : false;
-
-			if (!file_exists($destination) || (file_exists($destination) && $force))
-			{
-				file_put_contents($destination, $combiner->getCombined());
-
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-		else
-		{
-			return false;
-		}
-	}
-
-	/**
 	 * Method to get source files
 	 * 
 	 * @return  array  Source File
@@ -255,22 +187,56 @@ abstract class JMediaCollection
 	 */
 	public static function getInstance( $options = array())
 	{
+        // Derive the class name from the type.
+        $class = 'JMediaCollection' . ucfirst(strtolower($options['type']));
+
+        if (!class_exists($class))
+        {
+            throw new RuntimeException(sprintf("Error Loading collection class for %s file type", $options['type']));
+        }
+
+        // Create our new JMediaCollection class based on the options given.
+        try
+        {
+            $instance = new $class($options);
+        }
+        catch (RuntimeException $e)
+        {
+            throw new RuntimeException(sprintf("Error Loading Collection class for %s file type", $options['type']));
+        }
+
+        return $instance;
 
 	}
 
-	/**
-	 * Method to test if supported
-	 *
-	 * @param   string  $sourceFile  file to test
-	 *
-	 * @return  boolean   true or false
-	 *
-	 * @since  12.1
-	 */
-	public static function isSupported($sourceFile)
-	{
+    /**
+     * Method to save combined sources to file
+     *
+     * @param   String   $destination  file to save
+     *
+     * @return  boolean  True if saving to file is successful
+     *
+     * @since   12.1
+     */
+    public function toFile($destination = null)
+    {
+        if ($this->combined === null)
+        {
+            $this->combine();
+        }
 
-	}
+        if ($destination === null)
+        {
+            $destination = md5(serialize($this->options) . serialize($this->sources)) . '.' . $this->options['type'];
+        }
+
+        if (file_put_contents($destination, $this->combined) === false)
+        {
+            return false;
+        }
+
+        return true;
+    }
 
 	/**
 	 * Method to clear collection data

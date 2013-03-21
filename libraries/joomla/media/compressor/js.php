@@ -20,7 +20,7 @@ defined('JPATH_PLATFORM') or die;
 abstract class JMediaCompressorJs extends JMediaCompressorGeneric
 {
     /**
-     * Object Constructor takes two parameters.
+     * constructor
      *
      * @param   Array  $options  Compression options for Minifier.
      *
@@ -28,8 +28,7 @@ abstract class JMediaCompressorJs extends JMediaCompressorGeneric
      */
     public function __construct($options = array())
     {
-        // Merge user defined options with default options
-        $this->options = array_merge($this->options, $options);
+        parent::__construct($options);
     }
 
     /**
@@ -45,6 +44,33 @@ abstract class JMediaCompressorJs extends JMediaCompressorGeneric
      */
     public static function getInstance( $options = array())
     {
+        $class = 'JMediaCompressorJs';
 
+        // Select the specific compressor
+        if(!empty($options['compressor']))
+        {
+            $class .= ucfirst(strtolower($options['compressor']));
+        }
+        else
+        {
+            $class .= 'Default';
+        }
+
+        if (!class_exists($class))
+        {
+            throw new RuntimeException(sprintf("Error Loading %s compressor", $options['compressor']));
+        }
+
+        // Create our new JMediaCompressorCss class based on the options given.
+        try
+        {
+            $instance = new $class($options);
+        }
+        catch (RuntimeException $e)
+        {
+            throw new RuntimeException(sprintf("Error Loading %s compressor", $options['compressor']));
+        }
+
+        return $instance;
     }
 }
