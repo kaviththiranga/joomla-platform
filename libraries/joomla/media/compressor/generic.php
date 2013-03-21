@@ -54,19 +54,6 @@ abstract class JMediaCompressorGeneric implements JMediaCompressor
      */
     protected static $instances = array();
 
-    /**
-     * Object Constructor takes two parameters.
-     *
-     * @param   Array  $options  Compression options for Minifier.
-     *
-     * @since  12.1
-     */
-    public function __construct($options = array())
-    {
-        // Merge user defined options with default options
-        $this->options = array_merge($this->options, $options);
-    }
-
 	/**
 	 * Method to compress the code.
 	 * 
@@ -117,7 +104,7 @@ abstract class JMediaCompressorGeneric implements JMediaCompressor
     public function setCompressed($compressed)
     {
         $this->compressed = $compressed;
-        $this->compressedSize	= strlen($this->compressed);
+        $this->compressedSize = strlen($this->compressed);
     }
 
     /**
@@ -147,24 +134,8 @@ abstract class JMediaCompressorGeneric implements JMediaCompressor
      */
     public function setOptions($options)
     {
-        $prevSignature = md5(serialize($this->options));
-
         // Merge old options with new options
         $this->options = array_merge($this->options, $options);
-
-        $newSignature = md5(serialize($this->options));
-
-        if (strcmp($prevSignature, $newSignature) !== 0)
-        {
-            // Remove old signature from instance array
-            unset(self::$instances[$prevSignature]);
-
-            // Set new instance signature
-            if (!array_key_exists($newSignature, self::$instances))
-            {
-                self::$instances[$newSignature] = $this;
-            }
-        }
     }
 
     /**
@@ -189,6 +160,21 @@ abstract class JMediaCompressorGeneric implements JMediaCompressor
     public function getRatio()
     {
         return round(($this->compressedSize / $this->uncompressedSize * 100), 2);
+    }
+
+    /**
+     * Method to clear compressor data
+     *
+     * @return  void
+     *
+     * @since  12.1
+     */
+    public function clear()
+    {
+        $this->compressed = null;
+        $this->compressedSize = null;
+        $this->uncompressed = null;
+        $this->uncompressedSize = null;
     }
 
 }

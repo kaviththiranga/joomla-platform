@@ -18,19 +18,33 @@ defined('JPATH_PLATFORM') or die;
  */
 abstract class JMediaCollection
 {
-	public $sources = array();
+    /**
+     * @var array  Array of Source files
+     *
+     * @since   12.1
+     */
+    public $sources = array();
 
-	public $sourceCount = 0;
+    /**
+     * @var  String   combined string
+     *
+     * @since   12.1
+     */
+    protected $combined = null;
 
-	protected $combined = null;
+    /**
+     * @var array  options for the collection
+     *
+     * @since   12.1
+     */
+    protected $options = array();
 
-	protected $options = array();
-
-	/**
-	 * @var    array  JMediaCollection instances container.
-	 * @since  11.1
-	 */
-	protected static $instances = array();
+    /**
+     * @var    JMediaCompressor   Compressor Object
+     *
+     * @since  12.1
+     */
+    protected $compressor = null;
 
 	/**
 	 * Constructor
@@ -64,28 +78,26 @@ abstract class JMediaCollection
 	 * @since  12.1
 	 */
 	public function setOptions($options)
-	{
-		$prevSignature = md5(serialize($this->options));
-
+    {
 		// Merge old options with new options
 		$this->options = array_merge($this->options, $options);
-
-		$newSignature = md5(serialize($this->options));
-
-		if (strcmp($prevSignature, $newSignature) !== 0)
-		{
-			// Remove old signature from instance array
-			unset(self::$instances[$prevSignature]);
-
-			// Set new instance signature
-			if (!array_key_exists($newSignature, self::$instances))
-			{
-				self::$instances[$newSignature] = $this;
-			}
-		}
 	}
 
-	/**
+    /**
+     * Method to set the compressor for the collection
+     *
+     * @param   JMediaCompressor   Compressor
+     *
+     * @return  void
+     *
+     * @since   12.1
+     */
+    public function setCompressor($compressor)
+    {
+        $this->compressor = $compressor;
+    }
+
+    /**
 	 * Method to set source files to combine
 	 * 
 	 * @param   array  $files  array of source files
@@ -108,13 +120,12 @@ abstract class JMediaCollection
 			{
 				if (!file_exists($file))
 				{
-					throw new RuntimeException(sprintf("%s File not exists", $file));
+					throw new RuntimeException(sprintf("%s File does not exist", $file));
 				}
 				// Check whether file already registered
 				if (!in_array($file, $this->sources))
 				{
 					$this->sources[] = $file;
-					$this->sourceCount++;
 				}
 			}
 			else
@@ -220,49 +231,6 @@ abstract class JMediaCollection
 	}
 
 	/**
-	 * Get a list of available collection classes
-	 *
-	 * @return  array  An array of available collection classes
-	 *
-	 * @since   12.1
-	 */
-	public static function getCollectionTypes()
-	{
-		// Instantiate variables.
-		$collectionTypes = array();
-
-		// Get a list of types.
-		$types = glob(__DIR__ . '/collection/*');
-
-		// Loop through the types and find the ones that are available.
-		foreach ($types as $type)
-		{
-			$type = basename($type);
-
-			// Ignore some files.
-			if ($type == 'index.html')
-			{
-				continue;
-			}
-
-			// Derive the class name from the type.
-			$class = str_ireplace('.php', '', trim($type));
-
-			// If the class doesn't exist we have nothing left to do but look at the next type.  We did our best.
-			if (!class_exists('JMediaCollection' . ucfirst($class)))
-			{
-				continue;
-			}
-
-			// Combiner names should not have file extensions.
-			$collectionTypes[] = $class;
-
-		}
-
-		return $collectionTypes;
-	}
-
-	/**
 	 * Method to get options
 	 *
 	 * @return  array  Options for the collection object
@@ -288,48 +256,6 @@ abstract class JMediaCollection
 	public static function getInstance( $options = array())
 	{
 
-		// Get the options signature for the instance
-		$signature = md5(serialize($options));
-
-		// If we already have a Collection instance for these options then just use that.
-		if (empty(self::$instances[$signature]))
-		{
-			// Derive the class name from the type.
-			$class = 'JMediaCollection' . ucfirst(strtolower($options['type']));
-
-			// If the class still doesn't exist we have nothing left to do but throw an exception.  We did our best.
-			if (!class_exists($class))
-			{
-				throw new RuntimeException(sprintf("Error Loading Collection class for %s file type", $options['type']));
-			}
-
-			// Modify the signature with all the options
-			$signature = md5(serialize(array_merge($class::$DEFAULT_OPTIONS, $options)));
-
-			if (!empty(self::$instances[$signature]))
-			{
-				return self::$instances[$signature];
-			}
-			// Create our new JMediaCompressor class based on the options given.
-			try
-			{
-				$instance = new $class($options);
-			}
-			catch (RuntimeException $e)
-			{
-				throw new RuntimeException(sprintf("Error Loading Collection class for %s file type", $e->getMessage()));
-			}
-
-			// Set the new collection to the global instances based on signature.
-			self::$instances[$signature] = $instance;
-		}
-		else
-		{
-			$instance = self::$instances[$signature];
-			$instance->clear();
-		}
-
-		return self::$instances[$signature];
 	}
 
 	/**
@@ -343,17 +269,7 @@ abstract class JMediaCollection
 	 */
 	public static function isSupported($sourceFile)
 	{
-		$collectionTypes = self::getCollectionTypes();
 
-		foreach ($collectionTypes as $class)
-		{
-			if (strtolower(str_ireplace('JMediaCollection', '', $class)) === strtolower(pathinfo($sourceFile, PATHINFO_EXTENSION)))
-			{
-				return true;
-			}
-		}
-
-		return true;
 	}
 
 	/**
@@ -366,7 +282,6 @@ abstract class JMediaCollection
 	public function clear()
 	{
 		$this->sources = array();
-		$this->sourceCount = 0;
 		$this->combined = null;
 	}
 }

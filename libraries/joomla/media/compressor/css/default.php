@@ -16,7 +16,7 @@ defined('JPATH_PLATFORM') or die;
  * @subpackage  Media
  * @since       12.1 
  */
-class JMediaCompressorCssDefault extends JMediaCompressorGeneric
+class JMediaCompressorCssDefault extends JMediaCompressorCss
 {
 	public static $DEFAULT_OPTIONS = array('REMOVE_COMMENTS' => true, 'MIN_COLOR_CODES' => true, 'LIMIT_LINE_LENGTH' => true);
 	/**

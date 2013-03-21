@@ -80,7 +80,7 @@ class JMediaCollectionCss extends JMediaCollection
 			}
 		}
 
-		$this->combined .= '/** ' . $this->sourceCount . ' css files are combined **/';
+		$this->combined .= '/** ' . count($this->sources) . ' css files are combined **/';
 
 	}
 }

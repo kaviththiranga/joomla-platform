@@ -17,7 +17,7 @@ defined('JPATH_PLATFORM') or die;
  * 
  * @since       12.1
  */
-class JMediaCompressorJsDefault extends JMediaCompressorGeneric
+class JMediaCompressorJsDefault extends JMediaCompressorJs
 {
 	public static $DEFAULT_OPTIONS = array('REMOVE_COMMENTS' => true, 'CHANGE_ENCODING' => true);
 

@@ -80,6 +80,6 @@ class JMediaCollectionJs extends JMediaCollection
 			}
 		}
 
-		$this->combined .= '/** ' . $this->sourceCount . ' js files are combined **/';
+		$this->combined .= '/** ' . count($this->sources) . ' js files are combined **/';
 	}
 }
