@@ -52,22 +52,22 @@ class JMediaCollectionCss extends JMediaCollection
 				$this->combined .= '/** File : ' . basename($file) . ' : Start **/' . "\n\n";
 			}
 
-			if ($this->options['COMPRESS'])
+			if ($this->options['COMPRESS'] && ($this->compressor instanceof JMediaCompressorCss))
 			{
 				$this->options['COMPRESS_OPTIONS']['type'] = 'css';
 
-				if ($this->options['COMPRESSOR'] != null && $this->options['COMPRESSOR']->isSupported($file))
+				if ($this->compressor != null )
 				{
-					$compressor = $this->options['COMPRESSOR'];
-					$compressor->setUncompressed(file_get_contents($file));
-					$compressor->compress();
+                    $this->compressor->setOptions($this->options['COMPRESS_OPTIONS']);
+                    $this->compressor->setUncompressed(file_get_contents($file));
+                    $this->compressor->compress();
 
-					$this->combined .= $compressor->getCompressed();
+					$this->combined .= $this->compressor->getCompressed();
 				}
-				else
-				{
-					$this->combined .= JMediaCompressor::compressString(file_get_contents($file), $this->options['COMPRESS_OPTIONS']) . "\n\n";
-				}
+                else
+                {
+                    throw new RuntimeException("Compressor is not set or unsupported compressor type");
+                }
 			}
 			else
 			{
